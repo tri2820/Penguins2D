@@ -1,40 +1,26 @@
 import Game from "./Game";
+import Player from "./Player";
 
 const {ccclass, property} = cc._decorator;
 
-// Pool
-
 @ccclass
-export default class NewScript extends cc.Component {
+export default class Egg extends cc.Component {
+    @property
+    readonly pickUpRadius = 20;
+
     game : Game;
 
-    init (game) {
+    init(game: Game){
         this.game = game;
     }
 
-    reuse (game){
-        // ^ is this needed
-        this.init(game);
-    }
+    // reuse(game : Game){this.init(game)}
 
-    distanceToPlayer(){
+    pickedUpByPlayer(){
         let playerPosition = this.game.player.node.getPosition();
         let thisPosition = this.node.getPosition();
-        return thisPosition.sub(playerPosition).mag();
+        return thisPosition.sub(playerPosition).mag() <= this.pickUpRadius;
     }
-
-    setRandomPosition(){
-        // Map size, should move to its own class later
-        let mapsize = cc.v2(100,100);
-        let r2 = cc.v2(Math.random(),Math.random());
-        let newPosition = mapsize.multiply(r2)
-        this.node.setPosition(newPosition);
-    }
-
-    onLoad(){
-
-    }
-
     runAnimation(){
 
     }
@@ -44,6 +30,8 @@ export default class NewScript extends cc.Component {
     }
     
     update(dt){
-
+        if (this.pickedUpByPlayer()) {
+            this.game.despawnEgg(this.node);
+        }
     }
 }

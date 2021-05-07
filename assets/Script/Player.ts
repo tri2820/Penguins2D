@@ -1,43 +1,22 @@
 const {ccclass, property} = cc._decorator;
-
-type Direction = 'up' | 'down' | 'left' | 'right';
-type OffsetPosition = cc.Vec2;
+import {Defs, Direction} from './Defs'
 
 @ccclass
 export default class NewScript extends cc.Component {
-    direction : Direction;
-
-    @property
-    readonly speed = 200;
-
-    // Boundary zone
-    minPosX : number;
-    maxPosX : number; 
     anim : cc.Animation;
+    _cached_scaleX : number;
+    speed = 300;
 
-    keyCodeToDirection = new Map<any,Direction>([
-        [cc.macro.KEY.left,'left'],
-        [cc.macro.KEY.right,'right'],
-        [cc.macro.KEY.down,'down'],
-        [cc.macro.KEY.up,'up']
-    ])
-
-    directionToAnimation = new Map<Direction,string>([
-        ['left','2run'],
-        ['right','2run'],
-        ['down','1run'],
-        ['up','3run'],
-    ])
-
-    state = new Map<Direction,boolean>([
-        ['left',false],
-        ['right',false],
+    inputState = new Map<Direction,boolean>([
         ['up',false],
         ['down',false],
+        ['left',false],
+        ['right',false],
     ])
 
     onLoad(){
         this.anim = this.getComponent(cc.Animation);
+        this._cached_scaleX = this.node.scaleX;
 
         this.setInputControl();
         this.node.setPosition(cc.v2(0,0));
@@ -45,29 +24,40 @@ export default class NewScript extends cc.Component {
 
     setInputControl(){
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
     }
 
     onKeyDown (event) {        
-        let newDirection = this.keyCodeToDirection.get(event.keyCode);
-        if (!newDirection || newDirection == this.direction) return;
-
-        if (newDirection == 'left' || this.direction == 'left') this.node.scaleX *=-1;
-        this.direction = newDirection;
-        let animation = this.directionToAnimation.get(this.direction);
-        this.anim.play(animation);
+        let direction = Defs.keyCodeToDirection.get(event.keyCode);
+        if (!direction) return;
+        if (this.inputState.get(direction)) return;
+        this.inputState.set(direction, true);
+        this.animate(direction);
     }
 
-    directionToOffset () : OffsetPosition {
-        // offset for each 1 second
-        if (this.direction=='up') return cc.v2(0,1).mul(this.speed); 
-        if (this.direction=='down') return cc.v2(0,-1).mul(this.speed);
-        if (this.direction=='left') return cc.v2(-1,0).mul(this.speed);
-        // this.direction == 'right'
-        return cc.v2(1,0).mul(this.speed);
+    onKeyUp (event) {        
+        let direction = Defs.keyCodeToDirection.get(event.keyCode);
+        if (!direction) return;
+        if (!this.inputState.get(direction)) return;
+        this.inputState.set(direction, false);
+        this.animate(direction);
+    }
+
+    displacement () {
+        let displacements = Array.from(this.inputState.entries()).map(([k,v]) => v ? Defs.unitDisplacement.get(k) : cc.v2(0,0));
+        let displacement = displacements.reduce((s, v) => s.add(v))
+        return displacement.mul(this.speed)
+    }
+
+    animate(direction : Direction){
+        let runDirection = Array.from(this.inputState.keys()).find(k => this.inputState.get(k));        
+        let animation = runDirection ? Defs.directionToAnimation.get(runDirection) : Defs.directionToIdleAnimation.get(direction);
+        this.anim.play(animation);
+        if (runDirection) this.node.scaleX = this.inputState.get('left') ? -this._cached_scaleX : this._cached_scaleX;
     }
 
     update(dt){
-        let offset = this.directionToOffset().mul(dt)
-        this.node.setPosition(this.node.getPosition().add(offset));
+        let displacement = this.displacement().mul(dt);
+        this.node.setPosition(this.node.getPosition().add(displacement));
     }
 }
