@@ -5,9 +5,6 @@ const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class Game extends cc.Component {
-    @property(Player)
-    readonly player = null;
-
     // ATTENTION
     @property(cc.Prefab)
     readonly eggPrefab = null;
@@ -16,19 +13,27 @@ export default class Game extends cc.Component {
     readonly mapSize = cc.v2(960,640);
 
     @property
-    readonly timeLimit = 100000;
+    readonly timeLimit = null;
 
     eggPool : cc.NodePool;
     timer = 0;
+    player : Player;
+    progressBar : cc.ProgressBar;
 
     start() {
+        this.player = this.node.getComponentInChildren(Player);
+        this.progressBar = this.getComponentInChildren(cc.Camera).getComponentInChildren(cc.ProgressBar);
+        console.log(this.progressBar);
         this.timer = 0;
         this.eggPool = new cc.NodePool();
         this.spawnEgg();
     }
 
     gameOver(){
-        console.log('Game Over!');
+    //    this.gameOverNode.active = true;
+       this.player.enabled = false;
+       this.player.stopMove();
+    //    this.currentStar.destroy();
     }
 
     despawnEgg(egg){
@@ -43,15 +48,13 @@ export default class Game extends cc.Component {
         // Does the server need to render this
         this.node.addChild(newEgg);
         newEgg.getComponent(Egg).init(this);
+        newEgg.setPosition(this.randomPosition());
+    }
 
-        var r2 = cc.v2(Math.random(),Math.random());
-        var localPosition = r2.scale(this.mapSize);
-        var globalPosition = localPosition.add(this.mapSize.div(2).neg());
-        console.log('this is r2',r2);
-        console.log('this is mapsize',this.mapSize);
-        console.log('this is local',localPosition);
-
-        // newEgg.setPosition(globalPosition);
+    randomPosition(){
+        let localPosition = cc.v2(Math.random(),Math.random()).scale(this.mapSize);
+        let globalPosition = localPosition.add(this.mapSize.div(2).neg());
+        return globalPosition
     }
 
     update(dt){
@@ -60,5 +63,7 @@ export default class Game extends cc.Component {
             return;
         }
         this.timer += dt;
+        console.log(this.timer);
+        this.progressBar.progress = this.timer/this.timeLimit;
     }
 }

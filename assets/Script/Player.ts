@@ -27,6 +27,11 @@ export default class NewScript extends cc.Component {
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
     }
 
+    unsetInputControl(){
+        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
+        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
+    }
+
     onKeyDown (event) {        
         let direction = Defs.keyCodeToDirection.get(event.keyCode);
         if (!direction) return;
@@ -59,5 +64,10 @@ export default class NewScript extends cc.Component {
     update(dt){
         let displacement = this.displacement().mul(dt);
         this.node.setPosition(this.node.getPosition().add(displacement));
+    }
+
+    stopMove(){
+        this.unsetInputControl();
+        this.anim.pause();
     }
 }
