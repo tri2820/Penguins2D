@@ -1,18 +1,15 @@
 const {ccclass, property} = cc._decorator;
-import {Defs, Direction} from './Defs'
+import {Defs, Direction} from '../Defs'
 
 @ccclass
 export default class NewScript extends cc.Component {
     anim : cc.Animation;
     _cached_scaleX : number;
-    speed = 300;
 
-    inputState = new Map<Direction,boolean>([
-        ['up',false],
-        ['down',false],
-        ['left',false],
-        ['right',false],
-    ])
+    @property
+    readonly speed = 300;
+
+    inputState = Defs.getInputState();
 
     onLoad(){
         this.anim = this.getComponent(cc.Animation);

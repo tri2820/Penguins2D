@@ -13,13 +13,12 @@ export default class Egg extends cc.Component {
         this.game = game;
     }
 
-    // reuse(game : Game){this.init(game)}
-
     pickedUpByPlayer(){
         let playerPosition = this.game.player.node.getPosition();
         let thisPosition = this.node.getPosition();
         return thisPosition.sub(playerPosition).mag() <= this.pickUpRadius;
     }
+
     runAnimation(){
 
     }

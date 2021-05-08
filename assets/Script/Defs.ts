@@ -1,6 +1,8 @@
 export type Direction = 'up' | 'down' | 'left' | 'right';
-export class Defs {
+export type InputState = Map<Direction,boolean>;
+export type Position = cc.Vec2;
 
+export class Defs {
     static keyCodeToDirection = new Map<any,Direction>([
         [cc.macro.KEY.left,'left'],
         [cc.macro.KEY.right,'right'],
@@ -28,4 +30,21 @@ export class Defs {
         ['left', cc.v2(-1,0)],
         ['right', cc.v2(1,0)],
     ])
+
+    // TODO: Better cloning method
+    static getInputState() : InputState{
+        return new Map<Direction,boolean>([
+            ['up',false],
+            ['down',false],
+            ['left',false],
+            ['right',false],
+        ])
+    } 
 }
+
+export type Timestamp = number;
+export type RequestJoinMessage = any;
+export type PlayerInfoMessage = [bigint, bigint];
+export type PlayerPositionMessage = [Position[], Timestamp];
+export type ActionMessage = [InputState, Timestamp];
+

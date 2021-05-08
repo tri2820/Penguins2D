@@ -5,7 +5,6 @@ const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class Game extends cc.Component {
-    // ATTENTION
     @property(cc.Prefab)
     readonly eggPrefab = null;
 
@@ -13,7 +12,7 @@ export default class Game extends cc.Component {
     readonly mapSize = cc.v2(960,640);
 
     @property
-    readonly timeLimit = null;
+    readonly timeLimit = 10;
 
     eggPool : cc.NodePool;
     timer = 0;
@@ -30,13 +29,11 @@ export default class Game extends cc.Component {
     }
 
     gameOver(){
-    //    this.gameOverNode.active = true;
        this.player.enabled = false;
        this.player.stopMove();
-    //    this.currentStar.destroy();
     }
 
-    despawnEgg(egg){
+    despawnEgg(egg : cc.Node){
         this.eggPool.put(egg);
         this.spawnEgg();
     }
