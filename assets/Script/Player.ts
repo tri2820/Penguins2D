@@ -1,35 +1,25 @@
 const {ccclass, property} = cc._decorator;
-import {Defs, Direction} from '../Defs'
+import {Defs, Direction, InputState} from './Defs'
+import Game from './ClientScript/Game'
 
 @ccclass
-export default class NewScript extends cc.Component {
+export default class Player extends cc.Component {
     anim : cc.Animation;
     _cached_scaleX : number;
 
     @property
     readonly speed = 300;
 
-    inputState = Defs.getInputState();
+    inputState : InputState;
 
     onLoad(){
+        this.inputState = Defs.getNewInputState();
         this.anim = this.getComponent(cc.Animation);
         this._cached_scaleX = this.node.scaleX;
-
-        this.setInputControl();
         this.node.setPosition(cc.v2(0,0));
     }
 
-    setInputControl(){
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
-    }
-
-    unsetInputControl(){
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
-        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);
-    }
-
-    onKeyDown (event) {        
+    onKeyDown (event) {
         let direction = Defs.keyCodeToDirection.get(event.keyCode);
         if (!direction) return;
         if (this.inputState.get(direction)) return;
@@ -64,7 +54,6 @@ export default class NewScript extends cc.Component {
     }
 
     stopMove(){
-        this.unsetInputControl();
         this.anim.pause();
     }
 }

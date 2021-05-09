@@ -13,7 +13,7 @@
   },
   {
     "__type__": "cc.Node",
-    "_name": "Egg",
+    "_name": "Player",
     "_objFlags": 0,
     "_parent": null,
     "_children": [],
@@ -24,10 +24,13 @@
       },
       {
         "__id__": 3
+      },
+      {
+        "__id__": 4
       }
     ],
     "_prefab": {
-      "__id__": 4
+      "__id__": 5
     },
     "_opacity": 255,
     "_color": {
@@ -39,8 +42,8 @@
     },
     "_contentSize": {
       "__type__": "cc.Size",
-      "width": 140,
-      "height": 170
+      "width": 40,
+      "height": 36
     },
     "_anchorPoint": {
       "__type__": "cc.Vec2",
@@ -58,9 +61,9 @@
         0,
         0,
         1,
-        0.3,
-        0.3,
-        0.99999
+        3,
+        3,
+        1
       ]
     },
     "_eulerAngles": {
@@ -91,9 +94,7 @@
     ],
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
-    "_spriteFrame": {
-      "__uuid__": "e6bc593b-47d7-4e0b-bac6-61e201ae20f8"
-    },
+    "_spriteFrame": null,
     "_type": 0,
     "_sizeMode": 1,
     "_fillType": 0,
@@ -109,7 +110,41 @@
     "_id": ""
   },
   {
-    "__type__": "f1c00DQ19FLnplCuHQq616t",
+    "__type__": "cc.Animation",
+    "_name": "",
+    "_objFlags": 0,
+    "node": {
+      "__id__": 1
+    },
+    "_enabled": true,
+    "_defaultClip": {
+      "__uuid__": "0fef5619-954b-4513-a30a-f31879169e98"
+    },
+    "_clips": [
+      {
+        "__uuid__": "0fef5619-954b-4513-a30a-f31879169e98"
+      },
+      {
+        "__uuid__": "a65895cc-129a-40fc-84d3-219fe0b8d3cf"
+      },
+      {
+        "__uuid__": "89f03aac-7651-4ebf-b569-0726df0a6410"
+      },
+      {
+        "__uuid__": "bce689d5-3d95-4f5c-8735-302b1b1cfc00"
+      },
+      {
+        "__uuid__": "66e160a7-f793-4e97-8b68-2c2db7e066b0"
+      },
+      {
+        "__uuid__": "58c49b46-f124-41f0-ad53-a24f1b5d8613"
+      }
+    ],
+    "playOnLoad": true,
+    "_id": ""
+  },
+  {
+    "__type__": "85cc5G7KARML5n7rOqw9qc+",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -124,7 +159,7 @@
       "__id__": 1
     },
     "asset": {
-      "__uuid__": "a4ddad42-1057-472e-a9fd-5e18dca85ae8"
+      "__uuid__": "e27960a0-7045-4223-aa34-aa6766e73435"
     },
     "fileId": "",
     "sync": false

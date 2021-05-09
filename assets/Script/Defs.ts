@@ -32,7 +32,7 @@ export class Defs {
     ])
 
     // TODO: Better cloning method
-    static getInputState() : InputState{
+    static getNewInputState() : InputState{
         return new Map<Direction,boolean>([
             ['up',false],
             ['down',false],
@@ -43,8 +43,17 @@ export class Defs {
 }
 
 export type Timestamp = number;
-export type RequestJoinMessage = any;
-export type PlayerInfoMessage = [bigint, bigint];
-export type PlayerPositionMessage = [Position[], Timestamp];
+export type TotalTime = number;
+export type NumPlayer = number;
+export type PlayerIndex = number;
+export type MapSize = cc.Vec2;
+export type Score = number;
+
+export type RequestJoinMessage = void;
+export type GameInfoMessage = [PlayerIndex, NumPlayer, TotalTime, MapSize];
+export type UpdateMessage = [Position[], Position[], Score[], Timestamp];
 export type ActionMessage = [InputState, Timestamp];
+export type EndGameMessage = Score[];
+
+export type GenericMessage = RequestJoinMessage | GameInfoMessage | UpdateMessage | ActionMessage | EndGameMessage
 

@@ -1,5 +1,10 @@
-import Player from "./Player";
-import Egg from "./Egg";
+import Player from "../Player";
+import Egg from "../Egg";
+import Camera from "./Camera";
+import { Score, EndGameMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, RequestJoinMessage, Timestamp, TotalTime, UpdateMessage } from "../Defs";
+import { TestUtils } from "../TestUtils";
+import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
+import Server from "../ServerScript/Server";
 
 const {ccclass, property} = cc._decorator;
 
@@ -8,59 +13,136 @@ export default class Game extends cc.Component {
     @property(cc.Prefab)
     readonly eggPrefab = null;
 
-    @property(cc.Vec2)
-    readonly mapSize = cc.v2(960,640);
+    @property(cc.Prefab)
+    readonly playerPrefab = null;
 
-    @property
-    readonly timeLimit = 10;
+    connection : ServerConnection;
 
     eggPool : cc.NodePool;
-    timer = 0;
-    player : Player;
+    timer : Timestamp;
     progressBar : cc.ProgressBar;
+    
+    playerId : PlayerIndex;
+    numPlayer : NumPlayer
+    timeLimit : TotalTime;
+    mapSize : MapSize;
+    players : cc.Node[];
 
-    start() {
-        this.player = this.node.getComponentInChildren(Player);
-        this.progressBar = this.getComponentInChildren(cc.Camera).getComponentInChildren(cc.ProgressBar);
-        console.log(this.progressBar);
+    player : Player;
+    scores : Score[];
+
+    init() {
+        // Change this in production
+        this.addComponent(ServerConnectionSimulator);
+        this.connection = this.getComponent(ServerConnectionSimulator);
+
         this.timer = 0;
+        this.progressBar = this.getComponentInChildren(cc.Camera).getComponentInChildren(cc.ProgressBar);
         this.eggPool = new cc.NodePool();
-        this.spawnEgg();
+        this.players = []
     }
 
-    gameOver(){
-       this.player.enabled = false;
-       this.player.stopMove();
+    start(){
+        this.init();
+        this.setupServerCallback();
+        this.requestJoin();
+        
+        // NOTICE AND COMMENT
+        let m = TestUtils.generateGameInfoMessage();
+        this.doGameInfo(m);
+
+        let m1 = TestUtils.generateUpdateMessage(this.numPlayer, this.mapSize);
+        this.doUpdate(m1);
+    }
+
+    setupServerCallback(){
+        this.connection.onGameInfo = this.doGameInfo
+        this.connection.onUpdate = this.doUpdate;
+        this.connection.onEndGame = this.doEndgame;        
+    }
+
+    doGameInfo(m : GameInfoMessage){
+        [this.playerId, this.numPlayer, this.timeLimit, this.mapSize] = m;
+        this.prepareGame();
+        this.setupMainPlayer();
+    }
+
+    doUpdate(m : UpdateMessage){
+        let [playerPositions, eggPositions, scores, timestamp] = m;
+        this.players.forEach((r,i) => r.setPosition(playerPositions[i]));
+        eggPositions.forEach(v => {
+            let newEgg = this.spawnEgg();
+            newEgg.setPosition(v);
+        })
+        this.scores = scores;
+
+        // Interpolation
+    }
+
+    doEndgame(m : EndGameMessage){
+        this.player.enabled = false;
+        this.player.stopMove();
+        this.unsetInputControl(); 
+    }
+
+    prepareGame(){
+        for (let i=0; i<this.numPlayer; i++) {
+            let player = cc.instantiate<cc.Node>(this.playerPrefab);
+            this.players.push(player);
+            this.node.addChild(player);
+            player.opacity = 120;
+        }
+    }
+
+    setupMainPlayer(){
+        this.player = this.players[this.playerId].getComponent(Player);
+        this.player.node.zIndex = 999;
+        this.player.node.opacity = 255;
+
+        this.getComponentInChildren(cc.Camera).getComponent(Camera).init(this.player);
+        this.setInputControl();
+    }
+
+    requestJoin(){
+        let m : RequestJoinMessage;
+        this.connection.sendRequestJoin(m);
+    }
+
+    update(dt){
+        this.timer += dt;
+        this.progressBar.progress = this.timer/this.timeLimit;
+    }
+
+    spawnEgg(){
+        let newEgg = this.eggPool.size() > 0 ? this.eggPool.get() : cc.instantiate<cc.Node>(this.eggPrefab);
+        this.node.addChild(newEgg);
+        newEgg.getComponent(Egg).init(this);
+        return newEgg
     }
 
     despawnEgg(egg : cc.Node){
         this.eggPool.put(egg);
-        this.spawnEgg();
     }
 
-    // Server code
-    spawnEgg(){
-        console.log('Egg spawned!');
-        let newEgg = this.eggPool.size() > 0 ? this.eggPool.get() : cc.instantiate<cc.Node>(this.eggPrefab);
-        // Does the server need to render this
-        this.node.addChild(newEgg);
-        newEgg.getComponent(Egg).init(this);
-        newEgg.setPosition(this.randomPosition());
+    // Player control is here
+    // because we need Player prefab functionally pure
+    setInputControl(){
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.player.onKeyDown, this.player);
+        cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.player.onKeyUp, this.player);
     }
 
-    randomPosition(){
-        let localPosition = cc.v2(Math.random(),Math.random()).scale(this.mapSize);
-        let globalPosition = localPosition.add(this.mapSize.div(2).neg());
-        return globalPosition
+    unsetInputControl(){
+        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_DOWN, this.player.onKeyDown, this.player);
+        cc.systemEvent.off(cc.SystemEvent.EventType.KEY_UP, this.player.onKeyUp, this.player);
     }
 
-    update(dt){
-        if (this.timer > this.timeLimit) {
-            this.gameOver();
-            return;
-        }
-        this.timer += dt;
-        console.log(this.timer);
-        this.progressBar.progress = this.timer/this.timeLimit;
+
+    // Prediction and sendAction
+    onKeyboardDown(){
+
+    }
+
+    onKeyboardUp(){
+        
     }
 }
