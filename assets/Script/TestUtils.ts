@@ -2,7 +2,8 @@ import { GameInfoMessage, NumPlayer, UpdateMessage, Position, Score, Timestamp }
 
 export class TestUtils {
     static generateGameInfoMessage() : GameInfoMessage{
-        return [2,5,20,cc.v2(960,640)]
+        let m = new GameInfoMessage(2,5,20, cc.v2(960,640));
+        return m
     }
     static generateUpdateMessage(n: NumPlayer, mapsize) : UpdateMessage {
         let playerPositions : Position[] = [];
@@ -14,8 +15,9 @@ export class TestUtils {
         for(let i=0; i<5; i++) eggPositions.push(this.randomPosition(mapsize));
         for(let i=0; i<5; i++) scores.push(0);
 
-        return [playerPositions, eggPositions, scores, timestamp];
-    }   
+        let m = new UpdateMessage(playerPositions, eggPositions, scores, timestamp);
+        return m;
+    }
 
     static randomPosition(mapSize) : Position {
         let localPosition = cc.v2(Math.random(),Math.random()).scale(mapSize);

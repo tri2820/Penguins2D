@@ -43,17 +43,54 @@ export class Defs {
 }
 
 export type Timestamp = number;
-export type TotalTime = number;
+export type TimeLimit = number;
 export type NumPlayer = number;
 export type PlayerIndex = number;
 export type MapSize = cc.Vec2;
 export type Score = number;
 
-export type RequestJoinMessage = void;
-export type GameInfoMessage = [PlayerIndex, NumPlayer, TotalTime, MapSize];
-export type UpdateMessage = [Position[], Position[], Score[], Timestamp];
-export type ActionMessage = [InputState, Timestamp];
-export type EndGameMessage = Score[];
+export class RequestJoinMessage {};
+
+export class GameInfoMessage {
+    constructor(playerIndex, numPlayer, timeLimit, mapSize){
+        this.playerIndex = playerIndex;
+        this.numPlayer = numPlayer;
+        this.timeLimit = timeLimit;
+        this.mapSize = mapSize;
+    }
+    playerIndex: PlayerIndex;
+    numPlayer: NumPlayer;
+    timeLimit: TimeLimit; 
+    mapSize: MapSize
+};
+
+export class UpdateMessage {
+    constructor(playerPositions, eggPositions, scores, timestamp){
+        this.playerPositions = playerPositions;
+        this.eggPositions = eggPositions;
+        this.scores = scores;
+        this.timestamp = timestamp;    
+    }
+    playerPositions : Position[];
+    eggPositions : Position[];
+    scores : Score[];
+    timestamp: Timestamp
+}
+
+export class ActionMessage {
+    constructor(inputState, timestamp){
+        this.inputState = inputState;
+        this.timestamp = timestamp;
+    }
+    inputState : InputState;
+    timestamp : Timestamp  
+} 
+export class EndGameMessage {
+    constructor(scores){
+        this.scores = scores;
+    }
+    scores : Score[]
+} 
 
 export type GenericMessage = RequestJoinMessage | GameInfoMessage | UpdateMessage | ActionMessage | EndGameMessage
 

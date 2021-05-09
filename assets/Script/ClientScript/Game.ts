@@ -1,7 +1,7 @@
 import Player from "../Player";
 import Egg from "../Egg";
 import Camera from "./Camera";
-import { Score, EndGameMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, RequestJoinMessage, Timestamp, TotalTime, UpdateMessage } from "../Defs";
+import { Score, EndGameMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, RequestJoinMessage, Timestamp, TimeLimit, UpdateMessage } from "../Defs";
 import { TestUtils } from "../TestUtils";
 import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
 import Server from "../ServerScript/Server";
@@ -24,7 +24,7 @@ export default class Game extends cc.Component {
     
     playerId : PlayerIndex;
     numPlayer : NumPlayer
-    timeLimit : TotalTime;
+    timeLimit : TimeLimit;
     mapSize : MapSize;
     players : cc.Node[];
 
@@ -45,6 +45,7 @@ export default class Game extends cc.Component {
     start(){
         this.init();
         this.setupServerCallback();
+
         this.requestJoin();
         
         // NOTICE AND COMMENT
@@ -62,13 +63,21 @@ export default class Game extends cc.Component {
     }
 
     doGameInfo(m : GameInfoMessage){
-        [this.playerId, this.numPlayer, this.timeLimit, this.mapSize] = m;
+        this.playerId = m.playerIndex;
+        this.numPlayer = m.numPlayer;
+        this.timeLimit = m.timeLimit;
+        this.mapSize = m.mapSize;
+
         this.prepareGame();
         this.setupMainPlayer();
     }
 
     doUpdate(m : UpdateMessage){
-        let [playerPositions, eggPositions, scores, timestamp] = m;
+        let playerPositions = m.playerPositions;
+        let eggPositions = m.eggPositions;
+        let scores = m.scores;
+        let timestamp = m.timestamp;
+
         this.players.forEach((r,i) => r.setPosition(playerPositions[i]));
         eggPositions.forEach(v => {
             let newEgg = this.spawnEgg();
@@ -104,8 +113,8 @@ export default class Game extends cc.Component {
     }
 
     requestJoin(){
-        let m : RequestJoinMessage;
-        this.connection.sendRequestJoin(m);
+        let m = new RequestJoinMessage();
+        this.connection.send(m);
     }
 
     update(dt){

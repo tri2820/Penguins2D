@@ -1,11 +1,10 @@
 import Server from "../ServerScript/Server";
-import { ActionMessage, GenericMessage, RequestJoinMessage } from "../Defs";
+import { ActionMessage, GenericMessage, RequestJoinMessage, Timestamp } from "../Defs";
 
 const {ccclass, property} = cc._decorator;
 
 export interface ServerConnection {
-    sendRequestJoin(RequestJoinMessage);
-    sendAction(ActionMessage);
+    send(GenericMessage);
     onGameInfo : CallableFunction;
     onEndGame : CallableFunction;
     onUpdate : CallableFunction;
@@ -17,18 +16,23 @@ export class ServerConnectionSimulator extends cc.Component implements ServerCon
     onEndGame;
     onUpdate;
 
-    sendRequestJoin(m : RequestJoinMessage){
-        // 
-    }
+    timer : Timestamp;
+    queue : [Timestamp, GenericMessage][];
 
-    sendAction(m : ActionMessage){
-        // 
+    send(m : GenericMessage){
+        this.queue.push([this.timer,m]);
+        console.log(this.queue[0][1] instanceof RequestJoinMessage);
     }
 
     server : Server;
 
-    update(){
-        // console.log("AI talks");
+    onLoad(){
+        this.queue = [];
+        this.timer = 0;
+    }
+
+    update(dt){
+        this.timer += dt;
         // AIs
     }
 }
