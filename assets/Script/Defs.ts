@@ -1,3 +1,5 @@
+import Player from "./Player";
+
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type InputState = Map<Direction,boolean>;
 export type Position = cc.Vec2;
@@ -85,6 +87,7 @@ export class ActionMessage {
     inputState : InputState;
     timestamp : Timestamp  
 } 
+
 export class EndGameMessage {
     constructor(scores){
         this.scores = scores;
@@ -95,8 +98,3 @@ export class EndGameMessage {
 export type GenericMessage = RequestJoinMessage | GameInfoMessage | UpdateMessage | ActionMessage | EndGameMessage
 export type clientToServerMessage = RequestJoinMessage | ActionMessage
 export type serverToClientMessage = GameInfoMessage | UpdateMessage | EndGameMessage
-
-export interface Game extends cc.Component{
-    players : cc.Node[];
-    despawnEgg(n : cc.Node);
-}

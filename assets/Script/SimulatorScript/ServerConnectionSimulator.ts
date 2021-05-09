@@ -1,5 +1,7 @@
 import Server from "../ServerScript/Server";
 import { ActionMessage, EndGameMessage, GameInfoMessage, GenericMessage, RequestJoinMessage, Timestamp, UpdateMessage } from "../Defs";
+import { AI } from "./AI";
+
 const {ccclass, property} = cc._decorator;
 
 type ConnectionDirection = "serverToClient" | "clientToServer"
@@ -13,7 +15,7 @@ export interface ServerConnection {
 @ccclass
 export class ServerConnectionSimulator extends cc.Component implements ServerConnection {
     timer : Timestamp;
-    // TODO: make it queue
+    
     travellingMessages : {
         sendTime: Timestamp, 
         message: GenericMessage,
@@ -32,27 +34,42 @@ export class ServerConnectionSimulator extends cc.Component implements ServerCon
     serverNode : cc.Node;
     server : Server;
     latency = 0.5;
+    readonly clientPlayerID = 0;
+    AIs : AI[];
+    numAI : number;
 
     onLoad(){
         this.travellingMessages = [];
         this.timer = 0;
+        this.AIs = [];
 
         this.serverNode = new cc.Node();
         this.node.addChild(this.serverNode);
-
         this.serverNode.addComponent(Server);
         this.server = this.serverNode.getComponent(Server);
-        this.server.connection = this;
+        this.disableRendering(this.serverNode);
 
+        this.numAI = this.server.numPlayer - 1;
+        for(let i=0; i<this.numAI; i++){
+            let AInode = new cc.Node();
+            this.node.addChild(AInode);
+            AInode.addComponent(AI);
+            this.AIs.push(AInode.getComponent(AI));
+            this.disableRendering(AInode);
+
+            this.send(new RequestJoinMessage(), "clientToServer");
+        }
+    }
+
+    disableRendering(node : cc.Node){
         // TODO: find another way
         // disable rendering but keep children of serverNode updating
-        this.serverNode.opacity = 0;
+        node.opacity = 0;
     }
 
     update(dt){
         this.timer += dt;
         this.checkArrivedMessages();
-        // AIs
     }
 
     checkArrivedMessages(){
@@ -64,18 +81,33 @@ export class ServerConnectionSimulator extends cc.Component implements ServerCon
     }
 
     forwardToServer(m : GenericMessage) {
-        console.log("Message arrives", m);
-        if (m instanceof RequestJoinMessage) this.server.addPlayer();
+        console.log("Message sent to server", m);
+        if (m instanceof RequestJoinMessage) {
+            this.server.addConnection(this);
+        }
     }
 
-    // Talk with client
-    gameInfoCallback : (GameInfoMessage) => void;
-    updateCallback : (UpdateMessage) => void;
-    endGameCallback : (EndGameMessage) => void;
+    // Main Client Callback
+    gameInfoCallback : (m: GameInfoMessage) => void;
+    updateCallback : (m: UpdateMessage) => void;
+    endGameCallback : (m: EndGameMessage) => void;
 
     forwardToClient(m : GenericMessage){
-        if (m instanceof GameInfoMessage) this.gameInfoCallback(m);
-        if (m instanceof UpdateMessage) this.updateCallback(m);
-        if (m instanceof EndGameMessage) this.endGameCallback(m);
+        console.log("Message sent to client", m);
+
+        if (m instanceof GameInfoMessage) {
+            if (m.playerIndex == this.clientPlayerID) this.gameInfoCallback(m)
+            else this.AIs[m.playerIndex-1].gameInfoCallback(m);
+        }
+            
+        if (m instanceof UpdateMessage) {
+            this.updateCallback(m);
+            this.AIs.forEach((ai) => ai.updateCallback(m));
+        }
+        if (m instanceof EndGameMessage) {
+            this.endGameCallback(m);
+            this.AIs.forEach((ai) => ai.endGameCallback(m));
+        }
+
     }
 }

@@ -1,22 +1,20 @@
-import { Game } from "./Defs";
+import Client  from "./ClientScript/Client";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class Egg extends cc.Component {
     readonly pickUpRadius = 50;
-    game : Game;
+    game : Client;
 
-    init(game : Game) {
+    init(game : Client) {
         this.game = game;
     }
 
     pickedUpByPlayer(){
         let thisPosition = this.node.getPosition();
-        return this.game.players.map(p => {
-            let playerPosition = p.getPosition()
-            return thisPosition.sub(playerPosition).mag() <= this.pickUpRadius;
-        }).some(Boolean)
+        let playerPosition = this.game.player.node.getPosition();
+        return thisPosition.sub(playerPosition).mag() <= this.pickUpRadius;
     }
     
     update(dt){

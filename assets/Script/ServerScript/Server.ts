@@ -1,87 +1,109 @@
 import Player from "../Player";
 import Egg from "../Egg";
-import { GameInfoMessage, MapSize, NumPlayer, TimeLimit, Timestamp } from "../Defs";
-import { ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
-import { Game } from "../Defs";
+import { GameInfoMessage, MapSize, NumPlayer, TimeLimit, Timestamp, UpdateMessage } from "../Defs";
+import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
+import { Position,Score } from "../Defs";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class Server extends cc.Component implements Game {
-    eggPrefab : cc.Prefab;
+export default class Server extends cc.Component {
     playerPrefab : cc.Prefab;
 
-    connection : ServerConnectionSimulator;
-//     @property(cc.Vec2)
-//     readonly mapSize = cc.v2(960,640);
-
-//     @property
-//     readonly timeLimit = 10;
-//     timer = 0;
-//     player : Player;
-//     progressBar : cc.ProgressBar;
+    connections : ServerConnection[];
 
     players : cc.Node[];
-    eggPool : cc.NodePool;
+    scores : Score[];
     timer : Timestamp;
     gameRunning: boolean;
+    eggs : Position[];
+    nextUpdate : Timestamp;
 
-    readonly numPlayer : NumPlayer = 1;
+    readonly numPlayer : NumPlayer = 3;
     readonly timeLimit : TimeLimit = 10;
     readonly mapSize : MapSize = cc.v2(960,640);
     readonly numEgg = 5;
+    readonly pickUpRadius = 20;
 
     onLoad(){
         this.players = [];
-        this.eggPool = new cc.NodePool();
+        this.eggs = []
         this.timer = 0;
+        this.connections = [];
+        this.scores = [];
 
-        // TODO: await ready
+        // TODO: wait ready
         cc.resources.load('Player', cc.Prefab, (e,prefab)=>{
             this.playerPrefab = prefab as cc.Prefab;
         })
+    }
 
-        // TODO: await ready
-        cc.resources.load('Egg', cc.Prefab, (e,prefab)=>{
-            this.eggPrefab = prefab as cc.Prefab;
-        })
+    addConnection(conn : ServerConnection){
+        console.log('Add connection');
+        this.connections.push(conn);
+        this.addPlayer();
     }
 
     addPlayer(){
         let newPlayer = cc.instantiate(this.playerPrefab);
-        newPlayer.setPosition(this.randomPosition());
         this.node.addChild(newPlayer);
         this.players.push(newPlayer);
+        this.scores.push(0);
     }
 
     gameStart(){
         this.gameRunning = true;
+        this.players.forEach(p => {
+            p.setPosition(this.randomPosition());
+        });
 
-        for(let i=0; i<this.numEgg; i++){
-            let newEgg = this.spawnEgg();
-            newEgg.setPosition(this.randomPosition());
-        }
-
-        this.players.forEach((_, i) => {
+        this.connections.forEach((c, i) => {
             let m = new GameInfoMessage(i, this.numPlayer, this.timeLimit, this.mapSize);
-            this.connection.send(m, "serverToClient");
+            c.send(m, "serverToClient");
         })
+
+        this.sendUpdate();
+    }
+
+    sendUpdate(){
+        this.populateEggs();
+        let playerPositions = this.players.map((p) => p.getPosition());
+        let m = new UpdateMessage(playerPositions, this.eggs, this.scores, this.timer);
+        this.connections.forEach((c)=>{
+            c.send(m, "serverToClient");
+        })
+        this.nextUpdate = this.timer + (0.3 + Math.random()*0.2)
     }
 
     update(dt){
-        if (!this.gameRunning && this.players.length == this.numPlayer) this.gameStart();
         this.timer += dt;
+        if (this.timer > this.nextUpdate) this.sendUpdate();
+
+        if (!this.gameRunning && this.players.length == this.numPlayer) this.gameStart();
+
+        if (!this.gameRunning) return;
+        this.eggs = this.surviviedEggs();
+        this.populateEggs();
+    }
+
+    surviviedEggs(){
+        return this.eggs.filter((egg) => {
+            return this.players.map((player)=>{
+                return egg.sub(player.getPosition()).mag() <= this.pickUpRadius;
+            }).every(collided => !collided)
+        })
+    }
+
+    populateEggs(){
+        let n = this.eggs.length;
+        for(let i=n; i<this.numEgg; i++){
+            let newEgg = this.spawnEgg();
+            this.eggs.push(newEgg);
+        }
     }
 
     spawnEgg(){
-        let newEgg = this.eggPool.size() > 0 ? this.eggPool.get() : cc.instantiate(this.eggPrefab);
-        this.node.addChild(newEgg);
-        newEgg.getComponent(Egg).init(this);
-        return newEgg
-    }
-
-    despawnEgg(egg : cc.Node){
-        this.eggPool.put(egg);
+        return this.randomPosition()
     }
 
     randomPosition(){

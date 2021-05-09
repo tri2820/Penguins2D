@@ -3,12 +3,11 @@ import Egg from "../Egg";
 import Camera from "./Camera";
 import { Score, EndGameMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, RequestJoinMessage, Timestamp, TimeLimit, UpdateMessage } from "../Defs";
 import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
-import { Game } from "../Defs";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class Client extends cc.Component implements Game {
+export default class Client extends cc.Component {
     @property(cc.Prefab)
     readonly eggPrefab = null;
 
