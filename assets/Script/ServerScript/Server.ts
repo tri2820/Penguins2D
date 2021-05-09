@@ -1,7 +1,7 @@
 import Player from "../Player";
 import Egg from "../Egg";
-import { GameInfoMessage, MapSize, NumPlayer, TimeLimit, Timestamp, UpdateMessage } from "../Defs";
-import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
+import { ActionMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, TimeLimit, Timestamp, UpdateMessage } from "../Defs";
+import { Channel, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
 import { Position,Score } from "../Defs";
 
 const {ccclass, property} = cc._decorator;
@@ -10,7 +10,7 @@ const {ccclass, property} = cc._decorator;
 export default class Server extends cc.Component {
     playerPrefab : cc.Prefab;
 
-    connections : ServerConnection[];
+    connections : Channel[];
 
     players : cc.Node[];
     scores : Score[];
@@ -38,10 +38,21 @@ export default class Server extends cc.Component {
         })
     }
 
-    addConnection(conn : ServerConnection){
-        console.log('Add connection');
+    // Race condition warning
+    addConnection(conn : Channel){
         this.connections.push(conn);
         this.addPlayer();
+        conn.actionCallback = this.makeActionCallback(this.connections.length-1).bind(this);
+    }
+
+    makeActionCallback(i : PlayerIndex){
+        return (m: ActionMessage) => {
+            this.onAction(i,m);
+        }
+    }
+
+    onAction(i : PlayerIndex, m:ActionMessage){
+
     }
 
     addPlayer(){

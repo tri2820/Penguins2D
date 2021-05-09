@@ -2,7 +2,7 @@ import Player from "../Player";
 import Egg from "../Egg";
 import Camera from "./Camera";
 import { Score, EndGameMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, RequestJoinMessage, Timestamp, TimeLimit, UpdateMessage } from "../Defs";
-import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
+import { Channel, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
 
 const {ccclass, property} = cc._decorator;
 
@@ -14,7 +14,7 @@ export default class Client extends cc.Component {
     @property(cc.Prefab)
     readonly playerPrefab = null;
 
-    connection : ServerConnection;
+    connection : Channel;
 
     eggPool : cc.NodePool;
     timer : Timestamp;
@@ -48,12 +48,12 @@ export default class Client extends cc.Component {
 
     setupServerCallback(){
         // TODO: use event system instead of explicit binding.
-        this.connection.gameInfoCallback = this.doGameInfo.bind(this);
-        this.connection.updateCallback = this.doUpdate.bind(this);
-        this.connection.endGameCallback = this.doEndgame.bind(this);        
+        this.connection.gameInfoCallback = this.gameInfoCallback.bind(this);
+        this.connection.updateCallback = this.updateCallback.bind(this);
+        this.connection.endGameCallback = this.endGameCallback.bind(this);        
     }
 
-    doGameInfo(m : GameInfoMessage){
+    gameInfoCallback(m : GameInfoMessage){
         this.playerId = m.playerIndex;
         this.numPlayer = m.numPlayer;
         this.timeLimit = m.timeLimit;
@@ -63,7 +63,7 @@ export default class Client extends cc.Component {
         this.setupMainPlayer();
     }
 
-    doUpdate(m : UpdateMessage){
+    updateCallback(m : UpdateMessage){
         let playerPositions = m.playerPositions;
         let eggPositions = m.eggPositions;
         let scores = m.scores;
@@ -79,7 +79,7 @@ export default class Client extends cc.Component {
         // Interpolation
     }
 
-    doEndgame(m : EndGameMessage){
+    endGameCallback(m : EndGameMessage){
         this.player.enabled = false;
         this.player.stopMove();
         this.unsetInputControl(); 
