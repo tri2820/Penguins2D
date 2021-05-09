@@ -4,7 +4,7 @@ const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class Egg extends cc.Component {
-    readonly pickUpRadius = 50;
+    pickUpRadius = 50;
     game : Client;
 
     init(game : Client) {

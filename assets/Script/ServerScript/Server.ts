@@ -23,7 +23,7 @@ export default class Server extends cc.Component {
     readonly timeLimit : TimeLimit = 10;
     readonly mapSize : MapSize = cc.v2(960,640);
     readonly numEgg = 5;
-    readonly pickUpRadius = 20;
+    readonly pickUpRadius = 100;
 
     onLoad(){
         this.players = [];
@@ -52,7 +52,7 @@ export default class Server extends cc.Component {
     }
 
     onAction(i : PlayerIndex, m:ActionMessage){
-
+        this.players[i].getComponent(Player).inputState = m.inputState;
     }
 
     addPlayer(){

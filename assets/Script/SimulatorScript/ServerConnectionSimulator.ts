@@ -15,7 +15,7 @@ export class Channel extends cc.Component {
     actionCallback : (m: ActionMessage) => void;
     newConnectionCallback : (conn: Channel) => void;
 
-    latency = 0.5;
+    latency = 0.1;
     timer : Timestamp;
     travellingMessages : {
         sendTime: Timestamp, 
@@ -50,13 +50,11 @@ export class Channel extends cc.Component {
     }
 
     forwardToServer(m : GenericMessage) {
-        console.log("Message sent to server", m);
         if (m instanceof RequestJoinMessage) this.newConnectionCallback(this);
         if (m instanceof ActionMessage) this.actionCallback(m);
     }
 
     forwardToClient(m : GenericMessage){
-        console.log("Message sent to client", m);
         if (m instanceof GameInfoMessage) this.gameInfoCallback(m);
         if (m instanceof UpdateMessage) this.updateCallback(m);
         if (m instanceof EndGameMessage) this.endGameCallback(m);
