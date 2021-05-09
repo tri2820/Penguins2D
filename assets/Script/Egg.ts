@@ -1,4 +1,4 @@
-import Game from "./ClientScript/Game";
+import { Game } from "./Defs";
 
 const {ccclass, property} = cc._decorator;
 
@@ -12,9 +12,11 @@ export default class Egg extends cc.Component {
     }
 
     pickedUpByPlayer(){
-        let playerPosition = this.game.player.node.getPosition();
         let thisPosition = this.node.getPosition();
-        return thisPosition.sub(playerPosition).mag() <= this.pickUpRadius;
+        return this.game.players.map(p => {
+            let playerPosition = p.getPosition()
+            return thisPosition.sub(playerPosition).mag() <= this.pickUpRadius;
+        }).some(Boolean)
     }
     
     update(dt){

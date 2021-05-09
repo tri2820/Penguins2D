@@ -2,14 +2,13 @@ import Player from "../Player";
 import Egg from "../Egg";
 import Camera from "./Camera";
 import { Score, EndGameMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, RequestJoinMessage, Timestamp, TimeLimit, UpdateMessage } from "../Defs";
-import { TestUtils } from "../TestUtils";
 import { ServerConnection, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
-import Server from "../ServerScript/Server";
+import { Game } from "../Defs";
 
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export default class Game extends cc.Component {
+export default class Client extends cc.Component implements Game {
     @property(cc.Prefab)
     readonly eggPrefab = null;
 
@@ -45,21 +44,14 @@ export default class Game extends cc.Component {
     start(){
         this.init();
         this.setupServerCallback();
-
         this.requestJoin();
-        
-        // NOTICE AND COMMENT
-        let m = TestUtils.generateGameInfoMessage();
-        this.doGameInfo(m);
-
-        let m1 = TestUtils.generateUpdateMessage(this.numPlayer, this.mapSize);
-        this.doUpdate(m1);
     }
 
     setupServerCallback(){
-        this.connection.onGameInfo = this.doGameInfo
-        this.connection.onUpdate = this.doUpdate;
-        this.connection.onEndGame = this.doEndgame;        
+        // TODO: use event system instead of explicit binding.
+        this.connection.gameInfoCallback = this.doGameInfo.bind(this);
+        this.connection.updateCallback = this.doUpdate.bind(this);
+        this.connection.endGameCallback = this.doEndgame.bind(this);        
     }
 
     doGameInfo(m : GameInfoMessage){
@@ -114,7 +106,7 @@ export default class Game extends cc.Component {
 
     requestJoin(){
         let m = new RequestJoinMessage();
-        this.connection.send(m);
+        this.connection.send(m, "clientToServer");
     }
 
     update(dt){

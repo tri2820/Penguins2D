@@ -93,4 +93,10 @@ export class EndGameMessage {
 } 
 
 export type GenericMessage = RequestJoinMessage | GameInfoMessage | UpdateMessage | ActionMessage | EndGameMessage
+export type clientToServerMessage = RequestJoinMessage | ActionMessage
+export type serverToClientMessage = GameInfoMessage | UpdateMessage | EndGameMessage
 
+export interface Game extends cc.Component{
+    players : cc.Node[];
+    despawnEgg(n : cc.Node);
+}

@@ -243,7 +243,7 @@
     "_srcBlendFactor": 770,
     "_dstBlendFactor": 771,
     "_spriteFrame": {
-      "__uuid__": "410fb916-8721-4663-bab8-34397391ace7"
+      "__uuid__": "c416604e-f34f-42c4-bb0c-f973e0f83eef"
     },
     "_type": 1,
     "_sizeMode": 0,
@@ -729,7 +729,7 @@
     "_id": "851mrg23NKyJlsuMhT2vdw"
   },
   {
-    "__type__": "961a2cao5FHsaP5kQcNLRMS",
+    "__type__": "2095ak4jjpCkI9aPeds+AwT",
     "_name": "",
     "_objFlags": 0,
     "node": {
@@ -737,11 +737,11 @@
     },
     "_enabled": true,
     "eggPrefab": {
-      "__uuid__": "a4ddad42-1057-472e-a9fd-5e18dca85ae8"
+      "__uuid__": "a4120e4a-7ca4-489d-b7db-99eab9405910"
     },
     "playerPrefab": {
-      "__uuid__": "e27960a0-7045-4223-aa34-aa6766e73435"
+      "__uuid__": "2f62a0fa-6456-4534-b7db-9988a8544402"
     },
-    "_id": "8d2W929RNEG6oTZMa79MV5"
+    "_id": "d1NWNNnBBNX79v+i3pDBot"
   }
 ]
