@@ -1,17 +1,16 @@
 import { ActionMessage, EndGameMessage, GameInfoMessage, PlayerIndex, Position, RequestJoinMessage, UpdateMessage } from "../Defs";
-import { Channel } from "./ServerConnectionSimulator";
+import Channel from "../Channel";
 import { Defs, InputState } from "../Defs";
 
 export default class AI extends cc.Component {
     connection : Channel;
     playerID : PlayerIndex;
-    position : Position;
-    nearestEgg : Position;
-    inputState : InputState;
+    position : Position = cc.v2(0,0);
+    // Store the position of the nearest egg
+    nearestEgg : Position = cc.v2(0,0);
+    inputState : InputState ;
 
     init(conn : Channel){
-        this.nearestEgg = cc.v2(0,0);
-        this.position = cc.v2(0,0);
         this.inputState = Defs.getNewInputState();
 
         this.connection = conn;
@@ -38,6 +37,7 @@ export default class AI extends cc.Component {
     }
 
     updateAction(){
+        // Move to nearest egg
         if (this.nearestEgg.x > this.position.x){
             this.inputState.set("left",false);
             this.inputState.set("right",true);

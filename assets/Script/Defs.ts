@@ -1,4 +1,4 @@
-import Player from "./Player";
+// Lots and lots of definitions
 
 export type Direction = 'up' | 'down' | 'left' | 'right';
 export type InputState = Map<Direction,boolean>;

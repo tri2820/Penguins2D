@@ -4,7 +4,9 @@ const {ccclass} = cc._decorator;
 
 @ccclass
 export default class Egg extends cc.Component {
+    // TODO: sync with server through message
     pickUpRadius = 50;
+
     game : Client;
 
     init(game : Client) {

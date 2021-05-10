@@ -1,90 +1,37 @@
 import Server from "../ServerScript/Server";
-import { ActionMessage, clientToServerMessage, EndGameMessage, GameInfoMessage, GenericMessage, RequestJoinMessage, serverToClientMessage, Timestamp, UpdateMessage } from "../Defs";
 import AI from "./AI";
 import Player from "../Player";
+import Channel from "../Channel";
 
-type ConnectionDirection = "serverToClient" | "clientToServer"
-
-export class Channel extends cc.Component {
-    gameInfoCallback : (m: GameInfoMessage) => void;
-    updateCallback : (m: UpdateMessage) => void;
-    endGameCallback : (m: EndGameMessage) => void;
-    actionCallback : (m: ActionMessage) => void;
-    newConnectionCallback : (conn: Channel) => void;
-
-    latency = 0.1;
-    timer : Timestamp;
-    travellingMessages : {
-        sendTime: Timestamp, 
-        message: GenericMessage,
-        direction: ConnectionDirection
-    }[];
-
-    onLoad(){
-        this.travellingMessages = [];
-        this.timer = 0;
-    }
-
-    update(dt){
-        this.timer += dt;
-        this.checkArrivedMessages();
-    }
-    
-    sendToServer(m : clientToServerMessage){this.send(m, "clientToServer")} 
-    sendToClient(m : serverToClientMessage){this.send(m, "serverToClient")} 
-
-    send(m : GenericMessage, direction:ConnectionDirection){
-        this.travellingMessages.push({
-            sendTime: this.timer,
-            message: m,
-            direction: direction
-        });
-    }
-
-    checkArrivedMessages(){
-        while (this.travellingMessages[0] && this.travellingMessages[0].sendTime + this.latency < this.timer) {
-            let m = this.travellingMessages.shift();
-            if (m.direction == "clientToServer") this.forwardToServer(m.message)
-            else this.forwardToClient(m.message);
-        }
-    }
-
-    forwardToServer(m : GenericMessage) {
-        if (m instanceof RequestJoinMessage) this.newConnectionCallback(this);
-        if (m instanceof ActionMessage) this.actionCallback(m);
-    }
-
-    forwardToClient(m : GenericMessage){
-        if (m instanceof GameInfoMessage) this.gameInfoCallback(m);
-        if (m instanceof UpdateMessage) this.updateCallback(m);
-        if (m instanceof EndGameMessage) this.endGameCallback(m);
-    }
-}
-
-
-export class ServerConnectionSimulator extends Channel {
+export default class ServerConnectionSimulator extends Channel {
+    // The simulation owns a server
     serverNode : cc.Node;
     server : Server;
-    readonly clientPlayerID = 0;
+    // The simulation has many AI players
     players : (Player | AI)[];
-    mainClientChannel : Channel;
 
     onLoad(){
         this.timer = 0;
         this.travellingMessages = [];
         this.players = [];
         
+        // Add callback to send information to server
         this.server = this.addScript(Server) as Server
+
+        // This class itself is a channel
+        // and used by the main player to communicate with the server
         this.newConnectionCallback = this.server.addConnection.bind(this.server);    
 
+        // Peek into server numPlayer and populate that many AIs
         for(let i=0; i<this.server.numPlayer - 1; i++){
             let player = this.addScript(AI) as AI;
             this.players.push(player);
+            // A channel for each AI
             let newChannel = this.addScript(Channel) as Channel;
+            // Tell AI to communicate through this channel
             player.init(newChannel);
             newChannel.newConnectionCallback = this.server.addConnection.bind(this.server);    
         }
-        
     }
 
     addScript(S){
