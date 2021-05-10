@@ -51,6 +51,8 @@ export type PlayerIndex = number;
 export type MapSize = cc.Vec2;
 export type Score = number;
 
+
+// Define Message types
 export class RequestJoinMessage {};
 
 export class GameInfoMessage {

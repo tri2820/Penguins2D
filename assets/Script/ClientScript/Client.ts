@@ -123,7 +123,7 @@ export default class Client extends cc.Component {
 
 
     updateCallback(m : UpdateMessage){
-        // TODO: use timestamp for prediction and server reconcilation
+        // TODO: use timestamp for prediction and server reconciliation
         // For now, the game is deterministic enough to NOT sync the local main player with server
         let timestamp = m.timestamp;
 
