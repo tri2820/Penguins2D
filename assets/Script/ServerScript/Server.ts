@@ -3,9 +3,6 @@ import { EndGameMessage, ActionMessage, GameInfoMessage, MapSize, NumPlayer, Pla
 import { Channel } from "../SimulatorScript/ServerConnectionSimulator";
 import { Position,Score } from "../Defs";
 
-const {ccclass} = cc._decorator;
-
-@ccclass
 export default class Server extends cc.Component {
     playerPrefab : cc.Prefab;
 
@@ -74,7 +71,7 @@ export default class Server extends cc.Component {
 
         this.channels.forEach((c, i) => {
             let m = new GameInfoMessage(i, this.numPlayer, this.timeLimit, this.mapSize);
-            c.send(m, "serverToClient");
+            c.sendToClient(m);
         })
 
         this.sendUpdate();
@@ -85,14 +82,14 @@ export default class Server extends cc.Component {
         let playerPositions = this.players.map((p) => p.getPosition());
         let m = new UpdateMessage(playerPositions, this.eggs, this.scores, this.timer);
         this.channels.forEach((c)=>{
-            c.send(m, "serverToClient");
+            c.sendToClient(m);
         })
         this.nextUpdate = this.timer + (0.3 + Math.random()*0.2)
     }
 
     gameOver(){
         let m = new EndGameMessage(this.scores);
-        this.channels.forEach(c => c.send(m, "serverToClient"))
+        this.channels.forEach(c => c.sendToClient(m))
         this.init();
     }
 

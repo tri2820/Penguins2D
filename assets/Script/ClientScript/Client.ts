@@ -115,7 +115,9 @@ export default class Client extends cc.Component {
 
     endGameCallback(m : EndGameMessage){
         this.player.stopMove();
-        this.scoreText.string = `Your score is ${this.score}\nRank ${this.lastUpdateScores.filter(s => s > this.score).length + 1}/${this.players.length}`
+        let score = m.scores[this.playerId];
+        let rank = this.lastUpdateScores.filter(s => s > score).length + 1
+        this.scoreText.string = `Your score is ${score}\nRank ${rank}/${this.players.length}`
         this.scoreText.node.setPosition(0,200);
         this.players.forEach(p => p.getComponent(Player).enabled = false);
         this.unsetInputControl();
@@ -141,7 +143,7 @@ export default class Client extends cc.Component {
 
     requestJoin(){
         let m = new RequestJoinMessage();
-        this.connection.send(m, "clientToServer");
+        this.connection.sendToServer(m);
     }
 
     update(dt){
@@ -217,12 +219,12 @@ export default class Client extends cc.Component {
     onKeyDown(event){
         this.player.onKeyDown(event);
         let m = new ActionMessage(this.player.inputState, this.timer);
-        this.connection.send(m, "clientToServer");
+        this.connection.sendToServer(m);
     }
 
     onKeyUp(){
         this.player.onKeyUp(event);
         let m = new ActionMessage(this.player.inputState, this.timer);
-        this.connection.send(m, "clientToServer");
+        this.connection.sendToServer(m);
     }
 }

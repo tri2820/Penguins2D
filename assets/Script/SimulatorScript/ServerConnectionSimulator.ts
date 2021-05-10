@@ -1,13 +1,10 @@
 import Server from "../ServerScript/Server";
-import { ActionMessage, EndGameMessage, GameInfoMessage, GenericMessage, RequestJoinMessage, Timestamp, UpdateMessage } from "../Defs";
+import { ActionMessage, clientToServerMessage, EndGameMessage, GameInfoMessage, GenericMessage, RequestJoinMessage, serverToClientMessage, Timestamp, UpdateMessage } from "../Defs";
 import AI from "./AI";
 import Player from "../Player";
 
-const {ccclass } = cc._decorator;
-
 type ConnectionDirection = "serverToClient" | "clientToServer"
 
-@ccclass
 export class Channel extends cc.Component {
     gameInfoCallback : (m: GameInfoMessage) => void;
     updateCallback : (m: UpdateMessage) => void;
@@ -33,6 +30,9 @@ export class Channel extends cc.Component {
         this.checkArrivedMessages();
     }
     
+    sendToServer(m : clientToServerMessage){this.send(m, "clientToServer")} 
+    sendToClient(m : serverToClientMessage){this.send(m, "serverToClient")} 
+
     send(m : GenericMessage, direction:ConnectionDirection){
         this.travellingMessages.push({
             sendTime: this.timer,

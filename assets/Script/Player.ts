@@ -1,5 +1,5 @@
-const {ccclass, property} = cc._decorator;
 import {Defs, Direction, InputState} from './Defs'
+const {ccclass, property} = cc._decorator;
 
 @ccclass
 export default class Player extends cc.Component {

@@ -1,10 +1,7 @@
-import { ActionMessage, clientToServerMessage, EndGameMessage, GameInfoMessage, PlayerIndex, Position, RequestJoinMessage, UpdateMessage } from "../Defs";
-import { Channel, ServerConnectionSimulator } from "./ServerConnectionSimulator";
+import { ActionMessage, EndGameMessage, GameInfoMessage, PlayerIndex, Position, RequestJoinMessage, UpdateMessage } from "../Defs";
+import { Channel } from "./ServerConnectionSimulator";
 import { Defs, InputState } from "../Defs";
 
-const {ccclass, property} = cc._decorator;
-
-@ccclass
 export default class AI extends cc.Component {
     connection : Channel;
     playerID : PlayerIndex;
@@ -19,7 +16,7 @@ export default class AI extends cc.Component {
 
         this.connection = conn;
         this.setupServerCallback();
-        this.connection.send(new RequestJoinMessage(), "clientToServer");
+        this.connection.sendToServer(new RequestJoinMessage());
     }
     
     setupServerCallback(){
@@ -65,7 +62,7 @@ export default class AI extends cc.Component {
     update(){
         this.updateAction();
         let m = new ActionMessage(this.inputState, 0);
-        this.connection.send(m, "clientToServer");
+        this.connection.sendToServer(m);
         
     }
 }

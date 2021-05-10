@@ -1,6 +1,5 @@
-const {ccclass, property} = cc._decorator;
-
 import Player from '../Player'
+const {ccclass} = cc._decorator;
 
 @ccclass
 export default class Camera extends cc.Component {
