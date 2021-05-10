@@ -1,16 +1,15 @@
 import Player from "../Player";
-import Egg from "../Egg";
-import { ActionMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, TimeLimit, Timestamp, UpdateMessage } from "../Defs";
-import { Channel, ServerConnectionSimulator } from "../SimulatorScript/ServerConnectionSimulator";
+import { EndGameMessage, ActionMessage, GameInfoMessage, MapSize, NumPlayer, PlayerIndex, TimeLimit, Timestamp, UpdateMessage } from "../Defs";
+import { Channel } from "../SimulatorScript/ServerConnectionSimulator";
 import { Position,Score } from "../Defs";
 
-const {ccclass, property} = cc._decorator;
+const {ccclass} = cc._decorator;
 
 @ccclass
 export default class Server extends cc.Component {
     playerPrefab : cc.Prefab;
 
-    connections : Channel[];
+    channels : Channel[];
 
     players : cc.Node[];
     scores : Score[];
@@ -25,13 +24,17 @@ export default class Server extends cc.Component {
     readonly numEgg = 5;
     readonly pickUpRadius = 100;
 
-    onLoad(){
+    init(){
         this.players = [];
         this.eggs = []
         this.timer = 0;
-        this.connections = [];
+        this.channels = [];
         this.scores = [];
+        this.gameRunning = false;
+    }
 
+    onLoad(){
+        this.init()
         // TODO: wait ready
         cc.resources.load('Player', cc.Prefab, (e,prefab)=>{
             this.playerPrefab = prefab as cc.Prefab;
@@ -40,9 +43,9 @@ export default class Server extends cc.Component {
 
     // Race condition warning
     addConnection(conn : Channel){
-        this.connections.push(conn);
+        this.channels.push(conn);
         this.addPlayer();
-        conn.actionCallback = this.makeActionCallback(this.connections.length-1).bind(this);
+        conn.actionCallback = this.makeActionCallback(this.channels.length-1).bind(this);
     }
 
     makeActionCallback(i : PlayerIndex){
@@ -52,6 +55,7 @@ export default class Server extends cc.Component {
     }
 
     onAction(i : PlayerIndex, m:ActionMessage){
+        if (!this.gameRunning) return;
         this.players[i].getComponent(Player).inputState = m.inputState;
     }
 
@@ -68,7 +72,7 @@ export default class Server extends cc.Component {
             p.setPosition(this.randomPosition());
         });
 
-        this.connections.forEach((c, i) => {
+        this.channels.forEach((c, i) => {
             let m = new GameInfoMessage(i, this.numPlayer, this.timeLimit, this.mapSize);
             c.send(m, "serverToClient");
         })
@@ -80,28 +84,36 @@ export default class Server extends cc.Component {
         this.populateEggs();
         let playerPositions = this.players.map((p) => p.getPosition());
         let m = new UpdateMessage(playerPositions, this.eggs, this.scores, this.timer);
-        this.connections.forEach((c)=>{
+        this.channels.forEach((c)=>{
             c.send(m, "serverToClient");
         })
         this.nextUpdate = this.timer + (0.3 + Math.random()*0.2)
     }
 
+    gameOver(){
+        let m = new EndGameMessage(this.scores);
+        this.channels.forEach(c => c.send(m, "serverToClient"))
+        this.init();
+    }
+
     update(dt){
         this.timer += dt;
-        if (this.timer > this.nextUpdate) this.sendUpdate();
-
         if (!this.gameRunning && this.players.length == this.numPlayer) this.gameStart();
-
         if (!this.gameRunning) return;
-        this.eggs = this.surviviedEggs();
+        if (this.timer > this.timeLimit) this.gameOver();
+        if (this.timer > this.nextUpdate) this.sendUpdate();
+        this.eggs = this.eggToScore();
         this.populateEggs();
     }
 
-    surviviedEggs(){
+    eggToScore(){
         return this.eggs.filter((egg) => {
-            return this.players.map((player)=>{
+            let playerCollisions = this.players.map((player, i)=>{
                 return egg.sub(player.getPosition()).mag() <= this.pickUpRadius;
-            }).every(collided => !collided)
+            })
+            let collided = playerCollisions.findIndex((collision)=>collision==true);
+            if (collided>-1) this.scores[collided]++;
+            return collided==-1
         })
     }
 

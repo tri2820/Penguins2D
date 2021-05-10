@@ -20,6 +20,7 @@ export default class Client extends cc.Component {
     eggPool : cc.NodePool;
     timer : Timestamp;
     progressBar : cc.ProgressBar;
+    scoreText : cc.Label;
     
     playerId : PlayerIndex;
     numPlayer : NumPlayer
@@ -28,11 +29,12 @@ export default class Client extends cc.Component {
     players : cc.Node[];
 
     player : Player;
-    scores : Score[];
     eggDespawners : CallableFunction[];
     firstUpdate : boolean;
     lastUpdatePlayerPositions : Position[];
     lastUpdateEggPositions : Position[];
+    lastUpdateScores : Score[]
+    score : Score;
 
 
     init() {
@@ -42,11 +44,16 @@ export default class Client extends cc.Component {
 
         this.timer = 0;
         this.progressBar = this.getComponentInChildren(cc.Camera).getComponentInChildren(cc.ProgressBar);
+        // Warning: may get the wrong label 
+        // if score label is at lower position than timer label in scene
+        this.scoreText = this.getComponentInChildren(cc.Camera).getComponentInChildren(cc.Label);
         this.eggPool = new cc.NodePool();
         this.players = []
         this.eggDespawners = []
         this.firstUpdate = true;
         this.lastUpdateEggPositions = [];
+        this.lastUpdateScores = []; 
+        this.score = 0;
     }
 
     start(){
@@ -93,20 +100,25 @@ export default class Client extends cc.Component {
         })
 
         this.lastUpdateEggPositions = eggPositions;
+
         eggPositions.forEach(v => {
             if (v.sub(this.player.node.getPosition()).mag() > 200) return;
             let newEgg = this.spawnEgg();
             newEgg.setPosition(v);
         })
-        
-        this.scores = scores;
+
+        this.lastUpdateScores = scores;
+        this.score = this.lastUpdateScores[this.playerId];
+        this.scoreText.string = `${this.score}`;
         if (this.firstUpdate) this.firstUpdate = false;
     }
 
     endGameCallback(m : EndGameMessage){
-        this.player.enabled = false;
         this.player.stopMove();
-        this.unsetInputControl(); 
+        this.scoreText.string = `Your score is ${this.score}\nRank ${this.lastUpdateScores.filter(s => s > this.score).length + 1}/${this.players.length}`
+        this.scoreText.node.setPosition(0,200);
+        this.players.forEach(p => p.getComponent(Player).enabled = false);
+        this.unsetInputControl();
     }
 
     prepareGame(){
@@ -189,7 +201,7 @@ export default class Client extends cc.Component {
     }
 
     // Player control is here
-    // because we need Player prefab functionally pure
+    // to keep Player prefab functionally pure
     setInputControl(){
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_DOWN, this.onKeyDown, this);
         cc.systemEvent.on(cc.SystemEvent.EventType.KEY_UP, this.onKeyUp, this);

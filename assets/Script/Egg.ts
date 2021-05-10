@@ -1,6 +1,6 @@
 import Client  from "./ClientScript/Client";
 
-const {ccclass, property} = cc._decorator;
+const {ccclass} = cc._decorator;
 
 @ccclass
 export default class Egg extends cc.Component {
@@ -9,6 +9,10 @@ export default class Egg extends cc.Component {
 
     init(game : Client) {
         this.game = game;
+        this.node.color = new cc.Color()
+                            .setB(Math.random()*255)
+                            .setR(Math.random()*255)
+                            .setG(Math.random()*255);
     }
 
     pickedUpByPlayer(){

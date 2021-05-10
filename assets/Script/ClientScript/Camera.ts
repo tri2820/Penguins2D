@@ -8,6 +8,7 @@ export default class Camera extends cc.Component {
 
     init(player : Player){
         this.player = player;
+        this.node.zIndex = 998;
     }
 
     update(){

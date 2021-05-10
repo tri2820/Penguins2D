@@ -1,9 +1,9 @@
 import Server from "../ServerScript/Server";
-import { ActionMessage, clientToServerMessage, EndGameMessage, GameInfoMessage, GenericMessage, PlayerIndex, RequestJoinMessage, Timestamp, UpdateMessage } from "../Defs";
-import { AI } from "./AI";
+import { ActionMessage, EndGameMessage, GameInfoMessage, GenericMessage, RequestJoinMessage, Timestamp, UpdateMessage } from "../Defs";
+import AI from "./AI";
 import Player from "../Player";
 
-const {ccclass, property} = cc._decorator;
+const {ccclass } = cc._decorator;
 
 type ConnectionDirection = "serverToClient" | "clientToServer"
 

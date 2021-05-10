@@ -5,7 +5,7 @@ import { Defs, InputState } from "../Defs";
 const {ccclass, property} = cc._decorator;
 
 @ccclass
-export class AI extends cc.Component {
+export default class AI extends cc.Component {
     connection : Channel;
     playerID : PlayerIndex;
     position : Position;
@@ -58,7 +58,9 @@ export class AI extends cc.Component {
         }
     }
 
-    endGameCallback(m:EndGameMessage){}
+    endGameCallback(m:EndGameMessage){
+        this.enabled = false;
+    }
 
     update(){
         this.updateAction();
