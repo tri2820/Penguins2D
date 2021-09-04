@@ -1,5 +1,5 @@
 # Penguins2D
-A friend sent me a picture about Penguins' Day, so I want to make a game about them. Unfortunately I found no suitable texture. Maybe later?
+April 25
 
 # Architecture
 ## In production the thing will look like this
