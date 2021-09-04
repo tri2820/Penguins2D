@@ -2,11 +2,11 @@
 April 25
 
 # Architecture
-## In production the thing will look like this
-[client A] <--> [Client websocket interface] <--> [Server websocket interface] <--> [ Server]
+## In production
+[client A] - [Client websocket interface] - [Server websocket interface] - [ Server]
 
-## In the simulation I implemented it like this
-[client] <--> [ServerConnectionSimulator [Server] [AIs]]
+## Local
+[client] - [ServerConnectionSimulator [Server] [AIs]]
 
 ## Explanation
 The `ServerConnectionSimulator` extends `Channel`. The class `Channel` is equivalent to both Server and Client websocket interfaces. In production you just have to (1) write a Websocket class extends Channel and (2) load the `connection` in `Client.ts` with that class.
